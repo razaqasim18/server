@@ -22,6 +22,15 @@ Route::get('/expiry', function () {
     ]);
 });
 
+Route::get('/delete/customer', function () {
+    Log::info("Customer deleted cron is running!");
+    $currentDate = date('Y-m-d');
+    \DB::table('users')
+        ->where('is_deleted', '1')
+        ->whereRaw("DATEDIFF(CURDATE(),is_deleted_at) > 15")
+        ->delete();
+});
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -213,6 +222,10 @@ Route::prefix('admin')
                     App\Http\Controllers\Admin\CustomerController::class,
                     'index',
                 ])->name('customers');
+                Route::get('/customers/delete', [
+                    App\Http\Controllers\Admin\CustomerController::class,
+                    'deleteCustomer',
+                ])->name('customers.delete.list');
                 Route::post('/customers/add/amount', [
                     App\Http\Controllers\Admin\CustomerController::class,
                     'addAmount',
@@ -238,6 +251,10 @@ Route::prefix('admin')
                     App\Http\Controllers\Admin\CustomerController::class,
                     'softDelete',
                 ])->name('customer.delete');
+                Route::post('/customer/restore/{id}', [
+                    App\Http\Controllers\Admin\CustomerController::class,
+                    'restoreDelete',
+                ])->name('customer.restore');
                 Route::get('/customer/status/{id}/{status}', [
                     App\Http\Controllers\Admin\CustomerController::class,
                     'changeStatus',
@@ -338,6 +355,10 @@ Route::prefix('admin')
                     App\Http\Controllers\Admin\ServerController::class,
                     'serverList',
                 ])->name('list.server');
+                Route::get('/servers/category/{id}', [
+                    App\Http\Controllers\Admin\ServerController::class,
+                    'listByServerid',
+                ])->name('category.server');
                 Route::get('/servers/expired', [
                     App\Http\Controllers\Admin\ServerController::class,
                     'expiredServerList',

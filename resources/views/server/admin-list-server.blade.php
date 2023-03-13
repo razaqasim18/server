@@ -6,7 +6,7 @@
 @section('content')
     <section role="main" class="content-body">
         <header class="page-header">
-            <h2>Server List</h2>
+            <h2>{{ isset($title) ? $title : 'Server List' }}</h2>
 
             <div class="right-wrapper pull-right">
                 <ol class="breadcrumbs">
@@ -24,7 +24,7 @@
 
         <section class="panel">
             <header class="panel-heading">
-                <h2 class="panel-title">Server List</h2>
+                <h2 class="panel-title">{{ isset($title) ? $title : 'Server List' }}</h2>
                 <div class="panel-actions">
                     <a href="{{ route('admin.insert.server') }}">
                         <button type="button" class="btn btn-primary btn-xs">

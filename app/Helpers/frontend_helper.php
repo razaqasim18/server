@@ -61,3 +61,11 @@ if (!function_exists('getUniqueInvoiceForTransaction')) {
         return $unique_no;
     }
 }
+
+if (!function_exists('getListCategory')) {
+    function getListCategory()
+    {
+        $category = \DB::table('categories')->get();
+        return $category;
+    }
+}

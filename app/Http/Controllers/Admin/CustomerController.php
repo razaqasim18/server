@@ -15,9 +15,20 @@ class CustomerController extends Controller
     {
         $customers = User::select('*', 'users.id AS customerid')
             ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+            ->where('is_deleted', '0')
             ->orderBy('customerid', 'DESC')
             ->get();
         return view('customer.admin-list', ['customers' => $customers]);
+    }
+
+    public function deleteCustomer()
+    {
+        $customers = User::select('*', 'users.id AS customerid')
+            ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+            ->where('is_deleted', '1')
+            ->orderBy('customerid', 'DESC')
+            ->get();
+        return view('customer.admin-list-deleted', ['customers' => $customers]);
     }
 
     public function addSkype(Request $request)
@@ -99,6 +110,24 @@ class CustomerController extends Controller
         if ($response) {
             $type = 1;
             $msg = 'Data is deleted successfully';
+        } else {
+            $type = 0;
+            $msg = 'Something went wrong';
+        }
+        $result = ['type' => $type, 'msg' => $msg];
+        echo json_encode($result);
+        exit();
+    }
+
+    public function restoreDelete($id)
+    {
+        $response = User::findOrFail($id)->update([
+            'is_deleted' => 0,
+            'is_deleted_at' => null,
+        ]);
+        if ($response) {
+            $type = 1;
+            $msg = 'Data is restored successfully';
         } else {
             $type = 0;
             $msg = 'Something went wrong';

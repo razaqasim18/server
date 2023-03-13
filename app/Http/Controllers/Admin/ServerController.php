@@ -271,7 +271,22 @@ class ServerController extends Controller
             ->join('users', 'users.id', '=', 'servers.user_id')
             ->join('data_centers', 'data_centers.id', '=', 'servers.data_center_id')
             ->get();
-        return view('server.admin-list-server', ['server' => $server]);
+        $title = 'Server List';
+        return view('server.admin-list-server', ['server' => $server, 'title' => $title]);
+    }
+
+    public function listByServerid($id)
+    {
+        $server = Server::select('*', 'servers.id AS serverid')
+            ->join('users', 'users.id', '=', 'servers.user_id')
+            ->join('data_centers', 'data_centers.id', '=', 'servers.data_center_id')
+            ->join('packages', 'packages.id', '=', 'servers.package_id')
+            ->join('categories', 'categories.id', '=', 'packages.category_id')
+            ->where('categories.id', $id)
+            ->get();
+        $category = Category::findorFail($id);
+        $title = $category->category;
+        return view('server.admin-list-server', ['server' => $server, 'title' => $title]);
     }
 
     public function expiredServerList()
@@ -280,7 +295,8 @@ class ServerController extends Controller
             ->join('data_centers', 'data_centers.id', '=', 'servers.data_center_id')
             ->where('is_expired', '1')
             ->get();
-        return view('server.admin-list-server', ['server' => $server]);
+        $title = 'Expired Server List';
+        return view('server.admin-list-server', ['server' => $server, 'title' => $title]);
     }
 
     public function availableServerList()
@@ -289,7 +305,9 @@ class ServerController extends Controller
             ->join('data_centers', 'data_centers.id', '=', 'servers.data_center_id')
             ->where('is_expired', '0')
             ->get();
-        return view('server.admin-list-server', ['server' => $server]);
+        $title = 'Expired Server List';
+        return view('server.admin-list-server', ['server' => $server, 'title' => $title]);
+
     }
 
     public function addExpiry(Request $request)

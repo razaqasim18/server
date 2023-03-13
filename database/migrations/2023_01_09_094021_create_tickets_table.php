@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('department_id');
             $table->unsignedBigInteger('priority_id');
             $table->boolean('package_id')->nullable()->comment('if department id is 3 than not empty');
-            $table->tinyInteger('package_price')->nullable()->comment('if department id is 3 than not empty');
+            $table->string('package_price')->nullable()->comment('if department id is 3 than not empty');
             $table
                 ->tinyInteger('status')
                 ->default(0)

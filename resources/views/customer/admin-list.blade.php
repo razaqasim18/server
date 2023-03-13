@@ -25,6 +25,14 @@
         <section class="panel">
             <header class="panel-heading">
                 <h2 class="panel-title">Customers List</h2>
+                <div class="panel-actions">
+                    <a href="{{ route('admin.customers.delete.list') }}">
+                        <button class="btn btn-primary btn-xs">
+                            <i class="fa fa-trash-o"></i>
+                            View Trash Customers
+                        </button>
+                    </a>
+                </div>
             </header>
             <div class="panel-body">
                 <table class="table table-bordered table-striped mb-none" id="datatable-default">
@@ -33,12 +41,11 @@
                             <th>#</th>
                             <th>Name</th>
                             <th>Balance</th>
-                            <th>Total Servers</th>
+                            {{-- <th>Total Servers</th> --}}
                             <th>Mail</th>
                             <th>Whatsapp</th>
                             <th>Skype</th>
                             <th>Status</th>
-                            <th>Deleted</th>
                             <th>Join At</th>
                             <th>Action</th>
                         </tr>
@@ -66,9 +73,9 @@
                                         <i class="fa fa-minus"></i>
                                     </button>
                                 </td>
-                                <td>
+                                {{-- <td>
                                     0
-                                </td>
+                                </td> --}}
                                 <td>
                                     {{ $row->email }}
                                 </td>
@@ -96,21 +103,28 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if ($row->is_deleted)
-                                        <label class="label label-danger">Deleted</label>
-                                    @else
-                                        <label class="label label-success">Active</label>
-                                    @endif
-                                </td>
-                                <td>
                                     {{ date('Y-m-d', strtotime($row->created_at)) }}
                                 </td>
                                 <td>
-                                    <a href="{{ route('admin.customer.view', ['id' => $row->customerid]) }}"><button
-                                            class="btn btn-primary btn-xs"><i class="fa fa-eye"></i></button>
+                                    @if ($row->is_block)
+                                        <button id="statusCustomer" data-status="0" class="btn btn-warning btn-xs"
+                                            style="margin:1px" title="unblock" data-customerid="{{ $row->customerid }}">
+                                            <i class="fa fa-unlock"></i>
+                                        </button>
+                                    @else
+                                        <button id="statusCustomer" data-status="1" class="btn btn-danger btn-xs"
+                                            style="margin:1px" title="block" data-customerid="{{ $row->customerid }}">
+                                            <i class="fa fa-unlock-alt"></i>
+                                        </button>
+                                    @endif
+                                    <a href="{{ route('admin.customer.view', ['id' => $row->customerid]) }}">
+                                        <button style="margin:1px" class="btn btn-primary btn-xs m-1"><i
+                                                class="fa fa-eye"></i></button>
                                     </a>
                                     <button id="deleteUser" data-id="{{ $row->customerid }}"
-                                        class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i></button>
+                                        class="btn btn-danger btn-xs m-1" style="margin:1px">
+                                        <i class="fa fa-trash-o"></i>
+                                    </button>
                                 </td>
                             </tr>
                         @endforeach
@@ -153,8 +167,8 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
-                            class="sr-only">Close</span></button>
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title" id="myModalLabel">Add Skype?</h4>
                 </div>
                 <form id="skypeform">
@@ -260,6 +274,59 @@
                 $("div#modalBootstrapSkype").modal('show');
             });
 
+            $("#datatable-default").on("click", "button#statusCustomer", function() {
+                event.preventDefault();
+                var id = $(this).data("customerid");
+                var status = $(this).data("status");
+                var text = (status) ? "You want to block the user" : "You want to un-block the user";
+                swal({
+                        title: 'Are you sure?',
+                        text: text,
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonClass: "btn-primary",
+                        confirmButtonText: "Yes!",
+                        closeOnConfirm: false
+                    },
+                    function() {
+                        var token = $("meta[name='csrf-token']").attr("content");
+                        var url = '{{ url('admin/customer/status') }}' + '/' + id + '/' + status;
+                        $.ajax({
+                            url: url,
+                            type: 'GET',
+                            // data: {
+                            //     "id": id,
+                            //     "_token": token,
+                            // },
+                            beforeSend: function() {
+                                $(".loader").show();
+                            },
+                            complete: function() {
+                                $(".loader").hide();
+                            },
+                            success: function(response) {
+                                var result = jQuery.parseJSON(response);
+                                var typeOfResponse = result['type'];
+                                var res = result['msg'];
+                                if (typeOfResponse == 0) {
+                                    swal('Error', res, 'error');
+                                } else if (typeOfResponse == 1) {
+                                    swal({
+                                            title: 'Success',
+                                            text: res,
+                                            icon: 'success',
+                                            type: 'success',
+                                            showCancelButton: false, // There won't be any cancel button
+                                            showConfirmButton: true // There won't be any confirm button
+                                        },
+                                        function() {
+                                            location.reload();
+                                        });
+                                }
+                            }
+                        });
+                    });
+            });
 
             $("#datatable-default").on("click", "button#savewhatsapp", function() {
                 var $myForm = $('form#whatsappform')

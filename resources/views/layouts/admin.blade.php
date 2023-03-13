@@ -268,9 +268,16 @@
                                             <a href="{{ route('admin.add.server') }}">
                                                 Add Server
                                             </a>
-                                            <a href="{{ route('admin.list.server') }}">
+                                            @if (!empty(getListCategory()))
+                                                @foreach (getListCategory() as $row)
+                                                    <a href="{{ route('admin.category.server', $row->id) }}">
+                                                        {{ $row->category }}
+                                                    </a>
+                                                @endforeach
+                                            @endif
+                                            {{-- <a href="{{ route('admin.list.server') }}">
                                                 All Server
-                                            </a>
+                                            </a> --}}
                                             <a href="{{ route('admin.available.server') }}">
                                                 Available Server
                                             </a>
