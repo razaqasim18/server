@@ -250,7 +250,36 @@ class CustomerController extends Controller
             return redirect()->route('admin.customers.add')->with('success', 'User is added successfully');
         } else {
             DB::rollback();
-            return redirect()->route('admin.customers.add')->with('success', 'Something went wrong')->withInput(['name' => $request->name, 'email' => $request->email]);
+            return redirect()->route('admin.customers.add')->with('error', 'Something went wrong');
+        }
+    }
+
+    public function edit($id)
+    {
+        $customer = User::findorFail($id);
+        return view('customer.admin-edit', ['customer' => $customer]);
+    }
+
+    public function update($id, Request $request)
+    {
+        $this->validate($request, [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            // 'password' => ['required', 'string', 'min:8'],
+        ]);
+
+        $user = User::findorFail($id);
+        $user->name = $request->name;
+        $user->email = $request->email;
+        if (!empty($request->password)) {
+            $user->password = Hash::make($request->password);
+        }
+        $user->save();
+
+        if ($user) {
+            return redirect()->route('admin.customer.edit', ['id' => $id])->with('success', 'User is uodated successfully');
+        } else {
+            return redirect()->route('admin.customer.edit', ['id' => $id])->with('error', 'Something went wrong');
         }
     }
 }

@@ -260,6 +260,15 @@ Route::prefix('admin')
                     'changeStatus',
                 ])->name('customer.status');
 
+                Route::get('/customer/edit/{id}', [
+                    App\Http\Controllers\Admin\CustomerController::class,
+                    'edit',
+                ])->name('customer.edit');
+                Route::put('/customer/update/{id}', [
+                    App\Http\Controllers\Admin\CustomerController::class,
+                    'update',
+                ])->name('customer.update');
+
                 //ticket
                 Route::get('/ticket/change/{id}/status/{status}', [
                     App\Http\Controllers\Admin\TicketController::class,

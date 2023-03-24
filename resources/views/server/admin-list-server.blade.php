@@ -131,8 +131,10 @@
                                 <span class="input-group-addon">
                                     <i class="fa fa-calendar"></i>
                                 </span>
-                                <input type="text" id="expirydate" name="newdate" data-plugin-datepicker
-                                    class="form-control" required>
+                                {{-- <input type="text" id="expirydate" name="newdate" data-plugin-datepicker
+                                    class="form-control" required> --}}
+                                <input type="date" id="expirydate" name="newdate" class="form-control"
+                                    min="{{ date('Y-m-d') }}" required>
                             </div>
                         </div>
                     </div>

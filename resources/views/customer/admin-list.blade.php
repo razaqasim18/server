@@ -106,6 +106,10 @@
                                     {{ date('Y-m-d', strtotime($row->created_at)) }}
                                 </td>
                                 <td>
+                                    <a href="{{ route('admin.customer.edit', ['id' => $row->customerid]) }}">
+                                        <button style="margin:1px" class="btn btn-primary btn-xs m-1"><i
+                                                class="fa fa-pencil"></i></button>
+                                    </a>
                                     @if ($row->is_block)
                                         <button id="statusCustomer" data-status="0" class="btn btn-warning btn-xs"
                                             style="margin:1px" title="unblock" data-customerid="{{ $row->customerid }}">

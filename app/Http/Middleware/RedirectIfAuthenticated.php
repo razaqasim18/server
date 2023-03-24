@@ -27,7 +27,8 @@ class RedirectIfAuthenticated
         // }
 
         // if ($guard == 'admin' && Auth::guard($guard)->check()) {
-        if (
+
+            if (
             Auth::getDefaultDriver() == 'admin' &&
             Auth::guard('admin')->check()
         ) {
