@@ -359,10 +359,15 @@ class ServerController extends Controller
         }
         DB::beginTransaction();
         $server = Server::find($serverid);
-        $olddays = 30 + dateDiff(date('Y-m-d'), $server->expired_at);
+        if (date('Y-m-d') > $server->expired_at) {
+            $olddays = 30;
+        } else {
+            $olddays = 30 + dateDiffdays(date('Y-m-d'), $server->expired_at);
+        }
         $newexpirydate = date('Y-m-d', strtotime('+' . $olddays . ' days', strtotime(date('Y-m-d'))));
         $server->expired_at = $newexpirydate;
         $server->is_expired = 0;
+
         // $server->save();
         $report = new ReportPayment;
         $report->user_id = $userid;

@@ -26,7 +26,7 @@
             <header class="panel-heading">
                 <h2 class="panel-title">Server Payment</h2>
                 <div class="panel-actions">
-
+                    <h4>Total Amount: <span id="amountSpan"></span></h4>
                 </div>
             </header>
             <div class="panel-body">
@@ -41,7 +41,7 @@
                         <input type="submit" class="btn btn-primary" value="search" id="search" />
                     </div>
                 </div>
-                <table class="table table-bordered table-striped mb-none" id="datatable-default">
+                <table class="table table-bordered table-striped mb-none" id="datatable-default" width="100%">
                     <thead>
                         <tr>
                             <th>Customer</th>
@@ -100,57 +100,59 @@
     </script>
     <script>
         $(document).ready(function() {
+            $('input#start_date').change(function() {
+                console.log($(this).val());
+                $("input#start_date").attr({
+                    'min': $(this).val()
+                });
+            });
+
+            $(document).on('change', "input#start_date", function() {
+                $("input#end_date").attr("min", $(this).val());
+            });
+
             $('input#search').click(function() {
-                console.log($('#datatable-default').DataTable().draw(true));
                 $('#datatable-default').DataTable().draw(true);
+                getServerPaymentTotal();
             });
 
 
             if (!$.fn.DataTable.isDataTable('#datatable-default')) {
                 // Initialize the DataTable instance
-                $('#datatable-default').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: "{{ url('/admin/report/server/payment/filter') }}",
-                        type: 'GET',
-                        data: function(d) {
-                            d.start_date = $('#start_date').val();
-                            d.end_date = $('#end_date').val();
-                        }
-                    },
-                    columns: [{
-                            data: 'name',
-                            name: 'name',
-                        },
-                        {
-                            data: 'server_ip',
-                            name: 'server_ip'
-                        },
-                        {
-                            data: 'amount',
-                            name: 'amount'
-                        },
-                        {
-                            data: 'status',
-                            name: 'status'
-                        },
-                        {
-                            data: 'approve_by',
-                            name: 'approve_by'
-                        },
-                        {
-                            data: 'created_at',
-                            name: 'created_at'
-                        },
-                    ],
-                    order: [
-                        [0, 'desc']
-                    ]
-                });
+                getServerDetail();
+                getServerPaymentTotal();
             } else {
                 // Destroy the existing DataTable instance before initializing it again
                 $('#datatable-default').DataTable().destroy();
+                getServerDetail();
+                getServerPaymentTotal();
+            }
+
+            function getServerPaymentTotal() {
+                console.log($('#start_date').val());
+                let url = "{{ url('/admin/report/server/payment/count') }}";
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        "_token": '{{ csrf_token() }}',
+                        "start_date": $('#start_date').val(),
+                        "end_date": $('#end_date').val(),
+                    },
+                    beforeSend: function() {
+                        $(".loader").show();
+                    },
+                    complete: function() {
+                        $(".loader").hide();
+                    },
+                    success: function(response) {
+                        var result = jQuery.parseJSON(response);
+                        $("span#amountSpan").html(result[0].amount);
+                    }
+                });
+            }
+
+            function getServerDetail() {
                 $('#datatable-default').DataTable({
                     processing: true,
                     serverSide: true,
@@ -160,7 +162,13 @@
                         data: function(d) {
                             d.start_date = $('#start_date').val();
                             d.end_date = $('#end_date').val();
-                        }
+                        },
+                        beforeSend: function() {
+                            $(".loader").show();
+                        },
+                        complete: function() {
+                            $(".loader").hide();
+                        },
                     },
                     columns: [{
                             data: 'name',
@@ -191,48 +199,8 @@
                         [0, 'desc']
                     ]
                 });
-            }
 
-            // $('#datatable-default').DataTable({
-            //     processing: true,
-            //     serverSide: true,
-            //     ajax: {
-            //         url: "{{ url('/report/server/payment/filter') }}",
-            //         type: 'GET',
-            //         data: function(d) {
-            //             d.start_date = $('#start_date').val();
-            //             d.end_date = $('#end_date').val();
-            //         }
-            //     },
-            //     columns: [{
-            //             data: 'name',
-            //             name: 'name',
-            //         },
-            //         // {
-            //         //     data: 'server_ip',
-            //         //     name: 'server_ip'
-            //         // },
-            //         // {
-            //         //     data: 'amount',
-            //         //     name: 'amount'
-            //         // },
-            //         // {
-            //         //     data: 'status',
-            //         //     name: 'status'
-            //         // },
-            //         // {
-            //         //     data: 'approve_by',
-            //         //     name: 'approve_by'
-            //         // },
-            //         // {
-            //         //     data: 'created_at',
-            //         //     name: 'created_at'
-            //         // },
-            //     ],
-            //     order: [
-            //         [0, 'desc']
-            //     ]
-            // });
+            }
         });
     </script>
 @endsection

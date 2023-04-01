@@ -73,9 +73,19 @@ if (!function_exists('getListCategory')) {
 if (!function_exists('dateDiff')) {
     function dateDiff($start, $end)
     {
-        $start_ts = strtotime($start);
-        $end_ts = strtotime($end);
-        $diff = $end_ts - $start_ts;
-        return round($diff / 86400);
+        $date1 = date_create(date("Y-m-d", strtotime($start)));
+        $date2 = date_create(date("Y-m-d", strtotime($end)));
+        $diff = date_diff($date1, $date2);
+        return $diff->format("%a days");
+    }
+}
+
+if (!function_exists('dateDiffdays')) {
+    function dateDiffdays($start, $end)
+    {
+        $date1 = date_create(date("Y-m-d", strtotime($start)));
+        $date2 = date_create(date("Y-m-d", strtotime($end)));
+        $diff = date_diff($date1, $date2);
+        return $diff->format("%a");
     }
 }

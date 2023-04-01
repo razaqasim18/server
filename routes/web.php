@@ -385,6 +385,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             App\Http\Controllers\Admin\ReportController::class,
             'serverPaymentFilter',
         ])->name('report.server.payment.filter');
+        Route::post('/report/server/payment/count', [
+            App\Http\Controllers\Admin\ReportController::class,
+            'countServerPaymentAmount',
+        ])->name('report.server.payment.count');
+
 
         // sales
         Route::get('/all/sales', [
