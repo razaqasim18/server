@@ -181,6 +181,7 @@ return [
         Illuminate\View\ViewServiceProvider::class,
         Barryvdh\Debugbar\ServiceProvider::class,
         Srmklive\PayPal\Providers\PayPalServiceProvider::class,
+        Yajra\DataTables\DataTablesServiceProvider::class,
         /*
          * Package Service Providers...
          */
@@ -209,6 +210,7 @@ return [
     'aliases' => Facade::defaultAliases()
         ->merge([
             'PayPal' => Srmklive\PayPal\Facades\PayPal::class,
+            'Datatables' => Yajra\Datatables\Facades\Datatables::class,
             // 'ExampleClass' => App\Example\ExampleClass::class,
         ])
         ->toArray(),

@@ -15,10 +15,15 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\ExpireServerCron::class,
+        Commands\CustomerDelete::class,
+        Commands\ServerRenew::class,
     ];
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('expirecron:cron')->daily();
+        $schedule->command('expirecron:cron')->everyMinute();
+        $schedule->command('customerdelete:cron')->everyMinute();
+        $schedule->command('serverrenew:cron')->everyMinute();
+
         // $schedule->command('expirecron:cron')->everyMinute();
         // $schedule->command('inspire')->hourly();
     }

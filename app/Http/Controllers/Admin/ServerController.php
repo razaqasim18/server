@@ -7,12 +7,12 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\DataCenter;
 use App\Models\Package;
+use App\Models\ReportPayment;
 use App\Models\Server;
 use App\Models\Ticket;
 use App\Models\TicketDetail;
 use App\Models\User;
 use Auth;
-use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 
@@ -181,6 +181,13 @@ class ServerController extends Controller
         }
         if (empty($serverip)) {
             $error .= 'Server IP is required' . "\n";
+        } else {
+            $server = Server::where('server_ip', $serverip)->first();
+            if ($server) {
+                $result = ['type' => 0, 'msg' => 'The serverip has already been taken.'];
+                echo json_encode($result);
+                exit();
+            }
         }
         if (empty($web_user)) {
             $error .= 'Web user is required' . "\n";
@@ -324,7 +331,8 @@ class ServerController extends Controller
             exit();
         } else {
             $server = Server::find($serverid);
-            $server->expired_at = Carbon::createFromFormat('m/d/Y', $expirydate)->format('Y-m-d');
+            // $server->expired_at = Carbon::createFromFormat('m/d/Y', $expirydate)->format('Y-m-d');
+            $server->expired_at = date("Y-m-d", strtotime($expirydate));
             $server->is_expired = 0;
             if ($server->save()) {
                 $result = ['type' => 1, 'msg' => 'Data is saved successfully'];
@@ -334,6 +342,52 @@ class ServerController extends Controller
             echo json_encode($result);
             exit();
         }
+
+    }
+
+    public function renewal($serverid, $userid, $packageid)
+    {
+        $serverid = $serverid;
+        $userid = $userid;
+
+        $useraccountresponse = Account::where('user_id', $userid)->first();
+        $packageresponse = Package::find($packageid);
+        if ($useraccountresponse->addedamount < $packageresponse->price) {
+            $result = ['type' => 0, 'msg' => 'User balance is insufficent'];
+            echo json_encode($result);
+            exit();
+        }
+        DB::beginTransaction();
+        $server = Server::find($serverid);
+        $olddays = 30 + dateDiff(date('Y-m-d'), $server->expired_at);
+        $newexpirydate = date('Y-m-d', strtotime('+' . $olddays . ' days', strtotime(date('Y-m-d'))));
+        $server->expired_at = $newexpirydate;
+        $server->is_expired = 0;
+        // $server->save();
+        $report = new ReportPayment;
+        $report->user_id = $userid;
+        $report->server_id = $serverid;
+        $report->server_ip = $server->server_ip;
+        $report->amount = $packageresponse->price;
+        $report->status = 0;
+        $report->created_at = date('Y-m-d H:i:s');
+        $report->approve_by = 0;
+
+        $updateaccoutresponse = $useraccountresponse->update([
+            'addedamount' =>
+            $useraccountresponse->addedamount - $packageresponse->price,
+            'deductedamount' => $useraccountresponse->deductedamount + $packageresponse->price,
+        ]);
+
+        if ($server->save() && $report->save() && $updateaccoutresponse) {
+            DB::commit();
+            $result = ['type' => 1, 'msg' => 'Data is saved successfully'];
+        } else {
+            DB::rollback();
+            $result = ['type' => 0, 'msg' => "Something went wrong"];
+        }
+        echo json_encode($result);
+        exit();
 
     }
 
@@ -357,10 +411,10 @@ class ServerController extends Controller
             'datacenter' => 'required',
             'userid' => 'required',
             'packageid' => 'required',
-            'serverip' => 'required',
-            'web_user' => 'required',
-            'web_password' => 'required',
-            'uuid' => 'required',
+            'serverip' => 'required|unique:servers,server_ip',
+            // 'web_user' => 'required',
+            // 'web_password' => 'required',
+            // 'uuid' => 'required',
             'servercost' => 'required',
             'serversetupcost' => 'required',
             'saleprice' => 'required',
@@ -399,9 +453,9 @@ class ServerController extends Controller
             'category' => $request->category,
             'package_id' => $package[0],
             'server_ip' => $request->serverip,
-            'web_user' => $request->web_user,
-            'web_password' => $request->web_password,
-            'uuid' => $request->uuid,
+            // 'web_user' => $request->web_user,
+            // 'web_password' => $request->web_password,
+            // 'uuid' => $request->uuid,
             'server_cost' => $request->servercost,
             'setup_cost' => $request->serversetupcost,
             'sale_price' => $request->saleprice,
@@ -410,11 +464,11 @@ class ServerController extends Controller
 
         if ($serverresponse && $responseticket && $ticketdetailresponse) {
             DB::commit();
-            installServerMail($serverresponse->id);
+            //  installServerMail($serverresponse->id);
             return redirect()->route('admin.add.server')->with('success', 'Server is added successfully');
         } else {
             DB::rollback();
-            return redirect()->route('admin.add.server')->with('success', 'Something went wrong');
+            return redirect()->route('admin.add.server')->with('error', 'Something went wrong');
         }
     }
 

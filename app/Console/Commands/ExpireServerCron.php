@@ -26,13 +26,17 @@ class ExpireServerCron extends Command
      *
      * @return int
      */
+    public function __construct()
+    {
+        parent::__construct();
+    }
     public function handle()
     {
-        \Log::info("Server expiry cron is running cronjob!");
         $currentDate = date('Y-m-d');
         Server::where('expired_at', '<=', $currentDate)->update([
             'is_expired' => 1,
         ]);
+        \Storage::put('expire_cron.txt', 'Server expiry cron is running cronjob :' . date('Y-m-d H:i:s'));
         // return Command::SUCCESS;
     }
 }

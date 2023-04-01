@@ -77,13 +77,14 @@
                                     {{ $row->sale_price }}
                                 </td>
                                 <td>
-                                    {{-- @if (!$row->is_expired) --}}
+                                    @if (!$row->is_expired)
+                                        <span
+                                            class="label label-info">{{ dateDiff(date('Y-m-d'), $row->expired_at) }}</span>
+                                    @endif
                                     {!! $row->is_expired
                                         ? "<label class='label label-danger'>Expired</label>"
                                         : "<label class='label label-success'>Not Expired</label>" !!}
-                                    {{-- @else
-                                        Null
-                                    @endif --}}
+
                                 </td>
                                 <td>
                                     @if ($row->expired_at)
@@ -95,9 +96,13 @@
                                 <td>
                                     {{ date('Y-m-d H:i', strtotime($row->created_at)) }}
                                 </td>
-                                <td>
-                                    <button id="addexpiry" data-id="{{ $row->serverid }}"
-                                        class="btn btn-default btn-xs">Add</button>
+                                <td style="display: flex;    border: none;">
+                                    <button id="addexpiry" style="margin: 1px" data-id="{{ $row->serverid }}"
+                                        class="btn btn-default btn-xs">Add</button><br />
+
+                                    <button id="renewalServer" style="margin: 1px" data-id="{{ $row->serverid }}"
+                                        data-userid="{{ $row->user_id }}" data-packageid="{{ $row->package_id }}"
+                                        class="btn btn-info btn-xs">Renew</button>
                                 </td>
                                 <td>
                                     <button type="button" id="deleteServer" data-id="{{ $row->serverid }}"
@@ -176,6 +181,63 @@
             $("#datatable-default").on("click", "button#addexpiry", function() {
                 $("input#serverid").val($(this).data("id"));
                 $("div#modalBootstrapAddExpiry").modal('show');
+            });
+
+            $("#datatable-default").on("click", "button#renewalServer", function() {
+                var id = $(this).data("id");
+                var userid = $(this).data("userid");
+                var packageid = $(this).data("packageid");
+                swal({
+                        title: 'Are you sure?',
+                        text: 'You want to add 30 days!',
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonClass: "btn-primary",
+                        confirmButtonText: "Yes!",
+                        closeOnConfirm: false
+                    },
+                    function(willDelete) {
+                        if (willDelete) {
+                            var token = $("meta[name='csrf-token']").attr("content");
+                            var url = '{{ url('/admin/servers/add/renewal') }}' + '/' + id + '/' +
+                                userid + '/' + packageid;
+                            $.ajax({
+                                url: url,
+                                type: 'GET',
+                                // data: {
+                                //     "id": id,
+                                //     "_token": token,
+                                // },
+                                beforeSend: function() {
+                                    $(".loader").show();
+                                },
+                                complete: function() {
+                                    $(".loader").hide();
+                                },
+                                success: function(response) {
+                                    var result = jQuery.parseJSON(response);
+                                    var typeOfResponse = result['type'];
+                                    var res = result['msg'];
+                                    if (typeOfResponse == 0) {
+                                        swal('Error', res, 'error');
+                                    } else if (typeOfResponse == 1) {
+                                        swal({
+                                            title: 'Success',
+                                            text: res,
+                                            icon: 'success',
+                                            type: 'success',
+                                            showCancelButton: false, // There won't be any cancel button
+                                            showConfirmButton: true // There won't be any confirm button
+                                        }, function(oK) {
+                                            if (oK) {
+                                                location.reload();
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
             });
 
             $("#saveexpiry").click(function() {

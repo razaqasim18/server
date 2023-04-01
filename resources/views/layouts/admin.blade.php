@@ -351,6 +351,20 @@
                                     </li>
                                 @endif
 
+                                <li class="nav-parent">
+                                    <a>
+                                        <i class="fa fa-copy" aria-hidden="true"></i>
+                                        <span>Reports</span>
+                                    </a>
+                                    <ul class="nav nav-children">
+                                        <li>
+                                            <a href="{{ route('admin.report.server.payment') }}">
+                                                Server Payments
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+
                             </ul>
                         </nav>
 
